@@ -1,53 +1,88 @@
 class SmartCalculator {
   constructor(initialValue) {
     // your implementation
-    this.string = "" + initialValue;
+    this.stackOperations = [];
+    this.stackResult = [initialValue];
   }
 
   add(number) {
     // your implementation
-    this.string += "+" + number;
+    this.stackOperations.push("+");
+    this.stackResult.push(number);
     return this;
   }
   
   subtract(number) {
     // your implementation
-    this.string += "-" + number;
+    this.stackOperations.push("-");
+    this.stackResult.push(number);
     return this;
   }
 
   multiply(number) {
     // your implementation
-    this.string += "*" + number;
+    this.stackOperations.push("*");
+    this.stackResult.push(number);
     return this;
   }
 
   devide(number) {
-    this.string += "/" + number;
+    this.stackOperations.push("/");
+    this.stackResult.push(number);
     return this;
   }
 
   pow(number) {
-    let index = this.string.length - 1, num = "", repl = "";
-    if(this.string[index] === ")"){
-      let i = this.string.lastIndexOf("M");
-      let subst = this.string.substr(i);
-      let re = "Math.pow(" + subst + "," + number + ")";
-      this.string = this.string.replace(subst, re);
-      return this;
-    }
-    while(+this.string[index] && index >= 0){
-      num += this.string[index];
-      index--;
-    }
-    num = num.split("").reverse().join("");
-    repl = "Math.pow(" + num + "," + number + ")";
-    this.string = this.string.replace(num, repl);
+    this.stackOperations.push("^");
+    this.stackResult.push(number);
     return this;
   }
 
+  run(){
+    let length = this.stackOperations.length;
+    for(let i = length - 1; i >= 0; i--){
+      if(this.stackOperations[i] === "^") {
+        this.stackResult[i+1] = Math.pow(this.stackResult[i], this.stackResult[i+1]);
+        this.stackOperations.splice(i, 1);
+        this.stackResult.splice(i, 1);
+		    i++;
+      }
+    }
+    for(let i = 0; i < length; i++){
+      if(this.stackOperations[i] === "*") {
+        this.stackResult[i+1] = this.stackResult[i] * this.stackResult[i+1];
+        this.stackOperations.splice(i, 1);
+        this.stackResult.splice(i, 1);
+		    i--;
+      }
+      if(this.stackOperations[i] === "/") {
+        this.stackResult[i+1] = this.stackResult[i] / this.stackResult[i+1];
+        this.stackOperations.splice(i, 1);
+        this.stackResult.splice(i, 1);
+		    i--;
+      }
+    }
+    for(let i = 0; i < length; i++){
+      let current = this.stackResult[i];
+      let next = this.stackResult[i+1];
+      if(this.stackOperations[i] === "+") {
+        this.stackResult[i+1] = current + next;
+        this.stackOperations.splice(i, 1);
+        this.stackResult.splice(i, 1);
+		    i--;
+      }
+      if(this.stackOperations[i] === "-"){
+        this.stackResult[i+1] = current - next;
+        this.stackOperations.splice(i, 1);
+        this.stackResult.splice(i, 1);
+		    i--;
+      }
+    }
+    return this.stackResult[0];
+  }
+
   valueOf(){
-    return eval(this.string);
+	  return this.run();
   }
 }
 
